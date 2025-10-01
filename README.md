@@ -8,6 +8,10 @@ Vehicle insurance classification MLOps lifecycle from data ingestion to model ev
 src/
 ├── .circleci/
 │   └── config.yml
+├── notebook
+│   ├── 
+│   ├── mongodb_demo.ipynb
+│   └── experiments.ipynb
 ├── terraform/
 │   ├── main.tf
 │   ├── providers.tf
