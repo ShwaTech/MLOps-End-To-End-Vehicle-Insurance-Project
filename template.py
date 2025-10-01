@@ -24,6 +24,8 @@ list_of_files = [
     f"terraform/modules/s3_bucket/main.tf",
     f"terraform/modules/s3_bucket/variables.tf",
     f"terraform/modules/s3_bucket/outputs.tf",
+    f"notebook/mongodb_demo.ipynb",
+    f"notebook/experiments.ipynb",
     f"{project_name}/__init__.py",
     f"{project_name}/components/__init__.py",
     f"{project_name}/components/01_data_ingestion.py",  
