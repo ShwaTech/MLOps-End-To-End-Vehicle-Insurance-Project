@@ -8,6 +8,8 @@ __pycache__/
 
 secrets/
 
+notebook/rf_model.pkl
+
 # Distribution / packaging
 .Python
 build/
