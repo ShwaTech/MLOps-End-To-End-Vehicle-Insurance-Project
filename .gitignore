@@ -10,6 +10,8 @@ secrets/
 
 notebook/rf_model.pkl
 
+artifact/
+
 # Distribution / packaging
 .Python
 build/
