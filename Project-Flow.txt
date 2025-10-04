@@ -111,6 +111,68 @@
 24. Now we will start our work on "Model Evaluation" and "Model Pusher" component.
 
 
+---------------------------------------------- FastAPI App & UI ---------------------------------------------
+
 25. Create the code structure of "Prediction Pipeline" and setup your app.py
 26. Add "static" and "template" dir to the project.
 
+
+---------------------------------------- CI/CD Pipeline & Deployment ----------------------------------------
+
+27. Getting started with the **CI/CD process** (via Terraform Infrastructure as Code):
+
+* **Docker setup**
+
+  * Prepare `Dockerfile` and `.dockerignore` in the application root.
+  * These files are application-level and stay outside Terraform scope.
+
+* **Circle CI**
+
+  * Setup `.circleci/config.yaml` to define the CI/CD pipeline.
+  * Pipeline will authenticate to AWS using IAM credentials provisioned by Terraform.
+
+* **IAM User**
+
+  * Use Terraform to create an IAM user named `shwa-ci-cd-user`.
+  * Attach required policies (e.g., `AmazonEC2FullAccess`, `AmazonECS_FullAccess`, `AmazonEC2ContainerRegistryFullAccess`, or scoped-down permissions).
+  * Generate an **access key** via Terraform (`aws_iam_access_key`).
+  * Output the key & secret as **sensitive outputs**, then use them in GitHub Actions secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`).
+
+* **ECR Repository**
+
+  * Use Terraform to provision an Amazon ECR repository:
+
+    * Name: `dev-shwa-vehicle-ecr`
+    * Region: `us-east-1`
+  * Output the repository URI for Docker image pushes.
+
+* **EC2 Server**
+
+  * Use Terraform to provision an EC2 instance for deployment:
+
+    * Name: `dev-shwa-vehicle-machine`
+    * Region: `us-east-1`
+    * AMI: Ubuntu Server 24.04 LTS (free tier eligible if t2.micro; for t2.medium usage, billing applies).
+    * Instance Type: `t2.micro`
+    * Key Pair: created and managed in Terraform (e.g., `shwa-vehicle`).
+    * Security Group: allow inbound `22 (SSH)`, `80 (HTTP)`, `443 (HTTPS)`.
+    * Storage: 30GB gp3 (configurable).
+  * Terraform outputs the **public IP** or **DNS** for SSH/CI/CD connection.
+
+* **Terraform Outputs**
+
+  * IAM Access Key/Secret (sensitive).
+  * ECR repository URI and Key Pair Created.
+  * EC2 instance public DNS/IP.
+
+With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) is **provisioned automatically** and referenced inside the Circle CI workflow for building, pushing, and deploying Docker images.
+
+28. Open EC2 and Install docker in EC2 Machine:
+      ## Optinal
+        sudo apt-get update -y
+        sudo apt-get upgrade
+      ## Required (Because Docker is'nt there in our EC2 server - [docker --version])
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+        sudo usermod -aG docker ubuntu
+        newgrp docker
