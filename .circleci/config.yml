@@ -41,25 +41,30 @@ jobs:
     - attach_workspace:
         at: .
     - run:
-        name: Load image URI
-        command: cat bash.env >> $BASH_ENV
-    - aws-cli/setup:
-        aws-access-key-id: AWS_ACCESS_KEY_ID
-        aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-        region: AWS_DEFAULT_REGION
-    - aws-ecr/ecr-login:
-        region: ${AWS_DEFAULT_REGION}
+        name: Install AWS CLI v2
+        command: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+          unzip -q awscliv2.zip
+          sudo ./aws/install
+          aws --version
+    - run:
+        name: Log in to Amazon ECR
+        command: |
+          aws ecr get-login-password --region "$AWS_DEFAULT_REGION" \
+          | docker login --username AWS --password-stdin \
+              "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
     - run:
         name: Run container on EC2
         command: |
+          source bash.env
           docker pull "${FULL_IMAGE_URI}"
           docker stop app || true
           docker rm app   || true
           docker run -d --name app \
-            -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
-            -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
-            -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
-            -e MONGODB_URL="${MONGODB_URL}" \
+            -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+            -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+            -e AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION" \
+            -e MONGODB_URL="$MONGODB_URL" \
             -p 5000:5000 \
             "${FULL_IMAGE_URI}"
 
