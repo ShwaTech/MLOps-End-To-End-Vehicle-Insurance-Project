@@ -6,19 +6,22 @@ from src.components.comp_01_data_ingestion import DataIngestion
 from src.components.comp_02_data_validation import DataValidation
 from src.components.comp_03_data_transformation import DataTransformation
 from src.components.comp_04_model_trainer import ModelTrainer
+from src.components.comp_05_model_evaluation import ModelEvaluation
 
 from src.entity.config_entity import (
     DataIngestionConfig,
     DataValidationConfig,
     DataTransformationConfig,
-    ModelTrainerConfig
+    ModelTrainerConfig,
+    ModelEvaluationConfig
 )
 
 from src.entity.artifact_entity import (
     DataIngestionArtifact,
     DataValidationArtifact,
     DataTransformationArtifact,
-    ModelTrainerArtifact
+    ModelTrainerArtifact,
+    ModelEvaluationArtifact
 )
 
 
@@ -29,6 +32,7 @@ class TrainPipeline:
         self.data_validation_config = DataValidationConfig()
         self.data_transformation_config = DataTransformationConfig()
         self.model_trainer_config = ModelTrainerConfig()
+        self.model_evaluation_config = ModelEvaluationConfig()
     
     
     def start_data_ingestion(self) -> DataIngestionArtifact:
@@ -104,6 +108,26 @@ class TrainPipeline:
             raise MyException(e, sys)
     
     
+    def start_model_evaluation(
+        self,
+        data_ingestion_artifact: DataIngestionArtifact,
+        model_trainer_artifact: ModelTrainerArtifact
+    ) -> ModelEvaluationArtifact:
+        """
+        This method of TrainPipeline class is responsible for starting model evaluation
+        """
+        try:
+            model_evaluation = ModelEvaluation(
+                model_eval_config=self.model_evaluation_config,
+                data_ingestion_artifact=data_ingestion_artifact,
+                model_trainer_artifact=model_trainer_artifact
+            )
+            model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
+            return model_evaluation_artifact
+        except Exception as e:
+            raise MyException(e, sys)
+    
+    
     def run_pipeline(self) -> None:
         """
         This method of TrainPipeline class is responsible for running complete pipeline
@@ -116,6 +140,14 @@ class TrainPipeline:
                 data_validation_artifact=data_validation_artifact
             )
             model_trainer_artifact = self.start_model_trainer(data_transformation_artifact=data_transformation_artifact)
+            model_evaluation_artifact = self.start_model_evaluation(
+                data_ingestion_artifact=data_ingestion_artifact,
+                model_trainer_artifact=model_trainer_artifact
+            )
+            if not model_evaluation_artifact.is_model_accepted:
+                logging.info(f"Model not accepted.")
+                return None
+            
             
         except Exception as e:
             raise MyException(e, sys)

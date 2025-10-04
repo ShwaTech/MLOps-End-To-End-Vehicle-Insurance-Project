@@ -41,12 +41,12 @@ src/
 ├── __init__.py
 ├── components/
 │   ├── __init__.py
-│   ├── 01_data_ingestion.py
-│   ├── 02_data_validation.py
-│   ├── 03_data_transformation.py
-│   ├── 04_model_trainer.py
-│   ├── 05_model_evaluation.py
-│   └── 06_model_pusher.py
+│   ├── comp_01_data_ingestion.py
+│   ├── comp_02_data_validation.py
+│   ├── comp_03_data_transformation.py
+│   ├── comp_04_model_trainer.py
+│   ├── comp_05_model_evaluation.py
+│   └── comp_06_model_pusher.py
 ├── configuration/
 │   ├── __init__.py
 │   ├── mongo_db_connection.py
@@ -71,8 +71,8 @@ src/
 │   └── __init__.py
 ├── pipline/
 │   ├── __init__.py
-│   ├── 01_training_pipeline.py
-│   └── 02_prediction_pipeline.py
+│   ├── stage_01_training_pipeline.py
+│   └── stage_02_prediction_pipeline.py
 ├── utils/
 │   ├── __init__.py
 │   └── main_utils.py
@@ -91,3 +91,5 @@ src/
 ├── README.md
 └── LICENSE
 ```
+
+## For That Project Guidance -> Look at Project-Flow.txt

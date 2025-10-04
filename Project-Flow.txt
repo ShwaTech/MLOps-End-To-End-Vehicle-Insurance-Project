@@ -92,13 +92,13 @@
 
   ```python
   MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
-  MODEL_BUCKET_NAME = "my-model-mlopsproj"
+  MODEL_BUCKET_NAME = "Shwa-Vehicle-Insurance-Model"
   MODEL_PUSHER_S3_KEY = "model-registry"
   ```
 
 * Use Terraform to provision an **S3 bucket**:
 
-  * Name: `"my-model-mlopsproj"`
+  * Name: `"dev-shwa-vehicle-insurance-model"`
   * Region: `us-east-1`
   * General Purpose storage
   * Configure ACLs by disabling `block_public_acls` and `block_public_policy` if public access is needed.
@@ -106,3 +106,7 @@
 * Inside `src/aws_storage`, add code to handle pulling/pushing models from the S3 bucket.
 
 * In the `entity` directory, implement `s3_estimator.py` to define functions for data/model push & pull from S3.
+
+
+24. Now we will start our work on "Model Evaluation" and "Model Pusher" component.
+
