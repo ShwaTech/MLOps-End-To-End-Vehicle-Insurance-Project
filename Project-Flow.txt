@@ -183,6 +183,7 @@ With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) 
       AWS_ACCESS_KEY_ID
       AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION
+      AWS_ACCOUNT_ID
       ECR_REPO
       MONGODB_URL
 
