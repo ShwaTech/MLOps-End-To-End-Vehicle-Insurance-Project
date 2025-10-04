@@ -82,7 +82,7 @@ MIN_SAMPLES_SPLIT_RANDOM_STATE: int = 101
 MODEL Evaluation related constants
 """
 MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
-MODEL_BUCKET_NAME = "Shwa-Vehicle-Insurance-Model"
+MODEL_BUCKET_NAME = "dev-shwa-vehicle-insurance-model"
 MODEL_PUSHER_S3_KEY = "model-registry"
 
 

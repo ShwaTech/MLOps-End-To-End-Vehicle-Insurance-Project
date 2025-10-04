@@ -155,8 +155,10 @@ class ModelEvaluation:
                 trained_model_path=self.model_trainer_artifact.trained_model_file_path,
                 changed_accuracy=evaluate_model_response.difference
             )
-
+            
+            logging.info("Model Evaluation Artifact created Successfully ✅.")
             logging.info(f"Model evaluation artifact: {model_evaluation_artifact}")
+            logging.info("Exited initiate_model_evaluation method of ModelEvaluation class")
             return model_evaluation_artifact
         except Exception as e:
             raise MyException(e, sys) from e
