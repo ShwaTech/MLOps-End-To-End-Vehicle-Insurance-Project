@@ -55,6 +55,8 @@ list_of_files = [
     f"{project_name}/pipeline/stage_02_prediction_pipeline.py",
     f"{project_name}/utils/__init__.py",
     f"{project_name}/utils/main_utils.py",
+    "static/css/style.css",
+    "templates/vehicledata.html",
     "config/model.yaml",
     "config/schema.yaml",
     "app.py",
