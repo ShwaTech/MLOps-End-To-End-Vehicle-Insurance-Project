@@ -19,3 +19,14 @@ output "iam_secret_key" {
   sensitive   = true
 }
 
+
+output "s3_bucket_name" {
+  description = "The created S3 bucket name"
+  value       = module.s3_bucket.bucket_name
+}
+
+output "s3_bucket_arn" {
+  description = "The ARN of the created S3 bucket"
+  value       = module.s3_bucket.bucket_arn
+}
+
