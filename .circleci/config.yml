@@ -1,71 +1,138 @@
 version: 2.1
 
-orbs:
-  aws-cli: circleci/aws-cli@5.4
-  aws-ecr: circleci/aws-ecr@9.6
+# Reusable commands for better maintainability
+commands:
+  setup-aws-auth:
+    description: "Configure AWS authentication"
+    parameters:
+      aws-access-key-id:
+        type: string
+      aws-secret-access-key:
+        type: string
+      aws-region:
+        type: string
+    steps:
+    - run:
+        name: Configure AWS credentials
+        command: |
+          mkdir -p ~/.aws
+          cat > ~/.aws/config << EOF
+          [default]
+          region = << parameters.aws-region >>
+          EOF
+          cat > ~/.aws/credentials << EOF
+          [default]
+          aws_access_key_id = << parameters.aws-access-key-id >>
+          aws_secret_access_key = << parameters.aws-secret-access-key >>
+          EOF
 
+  ecr-login:
+    description: "Login to Amazon ECR"
+    steps:
+    - run:
+        name: Login to Amazon ECR
+        command: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+  build-push-ecr:
+    description: "Build, tag and push Docker image to ECR"
+    parameters:
+      ecr-repository:
+        type: string
+      image-tag:
+        type: string
+        default: "latest"
+    steps:
+    - run:
+        name: Build, tag, and push image to Amazon ECR
+        command: |
+          docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/<< parameters.ecr-repository >>:<< parameters.image-tag >> .
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/<< parameters.ecr-repository >>:<< parameters.image-tag >>
+
+# Reusable executors
 executors:
-  ubuntu-docker:
+  linux-aws:
     docker:
     - image: cimg/base:current
+    environment:
+      AWS_REGION: << pipeline.parameters.aws-region >>
+      AWS_ACCOUNT_ID: << pipeline.parameters.aws-account-id >>
+
+  self-hosted-runner:
+    machine:
+      enabled: true
+
+# Pipeline parameters for configuration
+parameters:
+  aws-region:
+    type: string
+    default: "us-east-1"
+  aws-account-id:
+    type: string
+    default: ""
 
 jobs:
   continuous-integration:
-    executor: ubuntu-docker
+    executor: linux-aws
     steps:
     - checkout
-    - aws-cli/setup # no arguments required
-    - aws-ecr/login:
-        region: ${AWS_DEFAULT_REGION}
-    - run:
-        name: Build, tag & push image
-        command: |
-          ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-          IMAGE_TAG="latest"
-          docker build -t "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}" .
-          docker push "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
-          echo "export FULL_IMAGE_URI=${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}" >> bash.env
+
+    - setup-aws-auth:
+        aws-access-key-id: << pipeline.parameters.aws-access-key-id >>
+        aws-secret-access-key: << pipeline.parameters.aws-secret-access-key >>
+        aws-region: << pipeline.parameters.aws-region >>
+
+    - ecr-login
+
+    - build-push-ecr:
+        ecr-repository: << pipeline.parameters.ecr-repository >>
+        image-tag: latest
+
     - persist_to_workspace:
-        root: .
+        root: /tmp
         paths:
-        - bash.env
+        - .aws
 
   continuous-deployment:
-    machine:
-      image: ubuntu-2204:2023.07.2
+    executor: self-hosted-runner
     steps:
     - checkout
+
     - attach_workspace:
-        at: .
+        at: /tmp
+
+    - setup-aws-auth:
+        aws-access-key-id: << pipeline.parameters.aws-access-key-id >>
+        aws-secret-access-key: << pipeline.parameters.aws-secret-access-key >>
+        aws-region: << pipeline.parameters.aws-region >>
+
+    - ecr-login
+
     - run:
-        name: Load image URI
-        command: cat bash.env >> $BASH_ENV
-    - aws-cli/setup # no arguments required
-    - aws-ecr/ecr-login:
-        region: ${AWS_DEFAULT_REGION}
-    - run:
-        name: Run container on EC2
+        name: Run Docker Image to serve users
         command: |
-          docker pull "${FULL_IMAGE_URI}"
-          docker stop app || true
-          docker rm app   || true
-          docker run -d --name app \
-            -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
-            -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
-            -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
-            -e MONGODB_URL="${MONGODB_URL}" \
+          docker run -d \
+            -e AWS_ACCESS_KEY_ID=<< pipeline.parameters.aws-access-key-id >> \
+            -e AWS_SECRET_ACCESS_KEY=<< pipeline.parameters.aws-secret-access-key >> \
+            -e AWS_DEFAULT_REGION=<< pipeline.parameters.aws-region >> \
+            -e MONGODB_URL=<< pipeline.parameters.mongodb-url >> \
             -p 5000:5000 \
-            "${FULL_IMAGE_URI}"
+            << pipeline.parameters.aws-account-id >>.dkr.ecr.<< pipeline.parameters.aws-region >>.amazonaws.com/<< pipeline.parameters.ecr-repository >>:latest
 
 workflows:
-  deploy-app:
+  deploy-to-ec2:
+    when:
+      equal: [ main, << pipeline.git.branch >> ]
     jobs:
     - continuous-integration:
-        context: Shwa-Vehicle-Secrets
+        context:
+        - aws-creds
+        post-steps:
+        - store_artifacts:
+            path: /tmp/.aws
+            destination: aws-config
     - continuous-deployment:
-        context: Shwa-Vehicle-Secrets
         requires:
         - continuous-integration
-        filters:
-          branches:
-            only: main
+        context:
+        - aws-creds
