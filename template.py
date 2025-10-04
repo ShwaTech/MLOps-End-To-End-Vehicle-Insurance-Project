@@ -10,6 +10,7 @@ list_of_files = [
     f"terraform/variables.tf",
     f"terraform/outputs.tf",
     f"terraform/backend.tf",
+    f"terraform/bootstrap/bootstrap.tf",
     f"terraform/envs/dev.tfvars",
     f"terraform/envs/prod.tfvars",
     f"terraform/modules/iam/main.tf",

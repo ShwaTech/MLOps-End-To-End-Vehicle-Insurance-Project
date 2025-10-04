@@ -63,3 +63,46 @@
 21. Now work on the "Data Transformation" component the way we did in above step. (add estimator.py to entity folder)
 22. Now work on the "Model Trainer" component the way we did in above step. (add class to estimator.py in entity folder)
 
+
+---------------------------------- Model Evaluation, Model Pusher To AWS S3 ----------------------------------
+
+23. Before moving to the next component of **Model Evaluation**, some AWS services setup is needed (via Terraform Infrastructure as Code):
+
+* Ensure AWS region is set to **us-east-1**.
+
+* Use Terraform to create an **IAM user** (name: `dev-shwa-mlops-vehicle`) with the following:
+
+  * Attach `AdministratorAccess` policy.
+  * Generate an **access key** and output it securely via Terraform outputs (marked `sensitive = true`).
+
+* Add the credentials into your environment variables in .env File:
+
+  ```
+
+  AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY_ID"
+  AWS_SECRET_ACCESS_KEY="AWS_SECRET_ACCESS_KEY"
+  
+  ```
+
+* Add the **access key, secret key, and region name** to `constants.__init__.py`.
+
+* Update `src/configuration/aws_connection.py` for AWS S3 integration.
+
+* Ensure `constants.__init__.py` contains:
+
+  ```python
+  MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
+  MODEL_BUCKET_NAME = "my-model-mlopsproj"
+  MODEL_PUSHER_S3_KEY = "model-registry"
+  ```
+
+* Use Terraform to provision an **S3 bucket**:
+
+  * Name: `"my-model-mlopsproj"`
+  * Region: `us-east-1`
+  * General Purpose storage
+  * Configure ACLs by disabling `block_public_acls` and `block_public_policy` if public access is needed.
+
+* Inside `src/aws_storage`, add code to handle pulling/pushing models from the S3 bucket.
+
+* In the `entity` directory, implement `s3_estimator.py` to define functions for data/model push & pull from S3.

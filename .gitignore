@@ -12,6 +12,10 @@ notebook/rf_model.pkl
 
 artifact/
 
+terraform/.terraform/
+terraform/bootstrap/.terraform/
+terraform/bootstrap/terraform.tfstate
+
 # Distribution / packaging
 .Python
 build/
