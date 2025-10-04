@@ -1,34 +1,90 @@
 version: 2.1
 
+# Use official orbs for AWS
 orbs:
   aws-cli: circleci/aws-cli@4.1.0
 
-executors:
-  linux-docker:
-    docker:
-    - image: cimg/base:2024.01
-
-jobs:
-  continuous-integration:
-    executor: linux-docker
+# Reusable commands
+commands:
+  ecr-login:
+    description: "Login to Amazon ECR"
     steps:
-    - checkout
-    - aws-cli/setup:
-        aws-access-key-id: AWS_ACCESS_KEY_ID
-        aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-        aws-region: AWS_REGION
     - run:
         name: Login to Amazon ECR
         command: |
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+  build-push-ecr:
+    description: "Build, tag and push Docker image to ECR"
+    steps:
     - run:
         name: Build, tag, and push image to Amazon ECR
         command: |
           docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest .
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
 
+# Executors
+executors:
+  linux-docker:
+    docker:
+    - image: cimg/base:2024.01
+
+  self-hosted-runner:
+    machine:
+      enabled: true
+
+jobs:
+  continuous-integration:
+    executor: linux-docker
+    steps:
+    - checkout
+
+    # Setup AWS CLI using the official orb
+    - aws-cli/setup:
+        aws-access-key-id: AWS_ACCESS_KEY_ID
+        aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+        aws-region: AWS_REGION
+
+    - ecr-login
+
+    - build-push-ecr
+
+  continuous-deployment:
+    executor: self-hosted-runner
+    steps:
+    - checkout
+
+    # Setup AWS CLI using the official orb
+    - aws-cli/setup:
+        aws-access-key-id: AWS_ACCESS_KEY_ID
+        aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+        aws-region: AWS_REGION
+
+    - ecr-login
+
+    - run:
+        name: Run Docker Image to serve users
+        command: |
+          docker run -d \
+            -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+            -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+            -e AWS_DEFAULT_REGION="$AWS_REGION" \
+            -e MONGODB_URL="$MONGODB_URL" \
+            -p 5000:5000 \
+            $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
+
 workflows:
   deploy-to-ec2:
     jobs:
     - continuous-integration:
         context: Shwa-Vehicle-Secrets
+        filters:
+          branches:
+            only: main
+    - continuous-deployment:
+        context: Shwa-Vehicle-Secrets
+        requires:
+        - continuous-integration
+        filters:
+          branches:
+            only: main
