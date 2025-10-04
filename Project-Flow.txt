@@ -159,6 +159,8 @@
     * Storage: 30GB gp3 (configurable).
   * Terraform outputs the **public IP** or **DNS** for SSH/CI/CD connection.
 
+  *Do not Forget To Allow App traffic on port 5000
+
 * **Terraform Outputs**
 
   * IAM Access Key/Secret (sensitive).
@@ -176,3 +178,20 @@ With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) 
         sudo sh get-docker.sh
         sudo usermod -aG docker ubuntu
         newgrp docker
+
+30. Setup your Github secrets: (Github project>Settings>SecretandVariable>Actions>NewRepoSecret)
+      AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION
+      ECR_REPO
+      MONGODB_URL
+
+31. CI-CD pipeline will be triggered at next commit and push.
+
+32. Now paste the public ip address on the address bar +:5000 and your app will be launched.
+
+33. You can also do model training on /training route
+
+34. Do not Forget To Run -> `terrafrom destroy -var-file="envs/dev.tfvars"` Not To be Consumed.
+
+================================================== The End ==================================================

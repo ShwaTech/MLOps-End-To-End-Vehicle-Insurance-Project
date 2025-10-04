@@ -5,7 +5,7 @@ Vehicle insurance classification MLOps lifecycle from data ingestion to model ev
 ## Project Structure
 
 ```bash
-src/
+/
 ├── .circleci/
 │   └── config.yml
 ├── notebook
@@ -38,47 +38,48 @@ src/
 │           ├── main.tf
 │           ├── variables.tf
 │           └── outputs.tf
-├── __init__.py
-├── components/
+├── src/
 │   ├── __init__.py
-│   ├── comp_01_data_ingestion.py
-│   ├── comp_02_data_validation.py
-│   ├── comp_03_data_transformation.py
-│   ├── comp_04_model_trainer.py
-│   ├── comp_05_model_evaluation.py
-│   └── comp_06_model_pusher.py
-├── configuration/
-│   ├── __init__.py
-│   ├── mongo_db_connection.py
-│   └── aws_connection.py
-├── cloud_storage/
-│   ├── __init__.py
-│   └── aws_storage.py
-├── data_access/
-│   ├── __init__.py
-│   └── vehicle_data.py
-├── constants/
-│   └── __init__.py
-├── entity/
-│   ├── __init__.py
-│   ├── config_entity.py
-│   ├── artifact_entity.py
-│   ├── estimator.py
-│   └── s3_estimator.py
-├── exception/
-│   └── __init__.py
-├── logger/
-│   └── __init__.py
-├── pipline/
-│   ├── __init__.py
-│   ├── stage_01_training_pipeline.py
-│   └── stage_02_prediction_pipeline.py
-├── utils/
-│   ├── __init__.py
-│   └── main_utils.py
-├── config/
-│   ├── model.py
-│   └── schema.py
+│   ├── components/
+│   │   ├── __init__.py
+│   │   ├── comp_01_data_ingestion.py
+│   │   ├── comp_02_data_validation.py
+│   │   ├── comp_03_data_transformation.py
+│   │   ├── comp_04_model_trainer.py
+│   │   ├── comp_05_model_evaluation.py
+│   │   └── comp_06_model_pusher.py
+│   │    configuration/
+│   │    ├── __init__.py
+│   │    ├── mongo_db_connection.py
+│   │    └── aws_connection.py
+│   │    cloud_storage/
+│   │    ├── __init__.py
+│   │    └── aws_storage.py
+│   │    data_access/
+│   │    ├── __init__.py
+│   │    └── vehicle_data.py
+│   │    constants/
+│   │    └── __init__.py
+│   │    entity/
+│   │    ├── __init__.py
+│   │    ├── config_entity.py
+│   │    ├── artifact_entity.py
+│   │    ├── estimator.py
+│   │    └── s3_estimator.py
+│   │    exception/
+│   │    └── __init__.py
+│   │    logger/
+│   │    └── __init__.py
+│   │    pipline/
+│   │    ├── __init__.py
+│   │    ├── stage_01_training_pipeline.py
+│   │    └── stage_02_prediction_pipeline.py
+│   │    utils/
+│   │    ├── __init__.py
+│   │    └── main_utils.py
+│   │    config/
+│   │    ├── model.py
+│   └─── └── schema.py
 ├── app.py
 ├── requirements.txt
 ├── Dockerfile

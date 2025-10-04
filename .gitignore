@@ -16,6 +16,8 @@ terraform/.terraform/
 terraform/bootstrap/.terraform/
 terraform/bootstrap/terraform.tfstate
 
+terraform/modules/ec2/shwa-vehicle.pem
+
 # Distribution / packaging
 .Python
 build/

@@ -22,3 +22,6 @@ indent_size = 2
 
 [terraform/*/*/*/*]
 indent_size = 2
+
+[.circleci/*]
+indent_size = 2
