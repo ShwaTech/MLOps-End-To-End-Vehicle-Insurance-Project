@@ -19,12 +19,11 @@ jobs:
         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
         region: AWS_DEFAULT_REGION
     - aws-ecr/ecr-login:
-        region: AWS_DEFAULT_REGION
+        region: ${AWS_DEFAULT_REGION}
     - run:
         name: Build, tag & push image
         command: |
           ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-          ECR_REPO="${ECR_REPO}"
           IMAGE_TAG="latest"
           docker build -t "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}" .
           docker push "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
@@ -49,7 +48,7 @@ jobs:
         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
         region: AWS_DEFAULT_REGION
     - aws-ecr/ecr-login:
-        region: AWS_DEFAULT_REGION
+        region: ${AWS_DEFAULT_REGION}
     - run:
         name: Run container on EC2
         command: |
@@ -68,9 +67,9 @@ workflows:
   deploy-app:
     jobs:
     - continuous-integration:
-        context: aws-credentials
+        context: Shwa-Vehicle-Secrets
     - continuous-deployment:
-        context: aws-credentials
+        context: Shwa-Vehicle-Secrets
         requires:
         - continuous-integration
         filters:
