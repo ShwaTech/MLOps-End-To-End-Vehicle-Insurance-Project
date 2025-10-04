@@ -31,12 +31,13 @@ output "s3_bucket_arn" {
 }
 
 
-
+# To Show It => Run $ terraform output iam_user_access_key_ci_cd
 output "iam_user_access_key_ci_cd" {
   value     = module.iam_user_ci_cd.iam_access_key_ci_cd
   sensitive = true
 }
 
+# To Show It => Run $ terraform output iam_user_secret_key_ci_cd
 output "iam_user_secret_key_ci_cd" {
   value     = module.iam_user_ci_cd.iam_secret_key_ci_cd
   sensitive = true
