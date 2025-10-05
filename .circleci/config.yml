@@ -45,22 +45,28 @@ jobs:
         name: Deploy Docker Image on EC2
         command: |
           ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP \<<EOF
-            echo "Pulling latest Docker image..."
+            set -e  # stop on any error
+            
+            echo "Logging into ECR..."
             aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
               docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+            
+            echo "Pulling latest Docker image..."
             docker pull "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:latest"
             
             echo "Stopping old container if exists..."
-            docker stop myapp || true
-            docker rm myapp || true
+            docker stop app || true
+            docker rm app || true
             
             echo "Running new container..."
-            docker run -d --name myapp \
+            docker run -d --name app \
               -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
               -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
               -e AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION" \
               -e MONGODB_URL="$MONGODB_URL" \
               -p 5000:5000 \
               "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:latest"
-            echo "Deployment complete. App should be running at port 5000."
+            
+            echo "Deployment complete. Checking running containers..."
+            docker ps -a
           EOF
