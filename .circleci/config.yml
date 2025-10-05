@@ -29,13 +29,16 @@ jobs:
     - run:
         name: Pull and Run Application Docker Image
         command: |
-          # Get login password and authenticate Docker to ECR
+          echo "Fetching AWS account ID..."
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          echo "Constructing ECR registry URL..."
+          ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+          FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
           echo "Logging into ECR..."
           aws ecr get-login-password --region $AWS_DEFAULT_REGION \
-            | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY_URL
-
-          # Build full image name
-          FULL_IMAGE_NAME="$AWS_ECR_REGISTRY_URL/$ECR_REPOSITORY:$IMAGE_TAG"
+            | docker login --username AWS --password-stdin $ECR_REGISTRY
 
           echo "Pulling image: $FULL_IMAGE_NAME"
           docker pull $FULL_IMAGE_NAME
