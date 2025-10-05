@@ -32,7 +32,6 @@ jobs:
   deploy_to_ec2:
     docker:
     - image: cimg/aws:2023.09
-    resource_class: shwatech/vehicle
     steps:
     - checkout
     - setup_remote_docker
