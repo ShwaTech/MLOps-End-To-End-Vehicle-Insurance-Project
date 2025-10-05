@@ -1,6 +1,6 @@
 version: 2.1
 
-# Define Orbs for easier AWS integration (ECR, CLI).
+# Define Orbs for easier AWS integration (ECR, CLI)
 orbs:
   aws-ecr: circleci/aws-ecr@9.0
   aws-cli: circleci/aws-cli@4.1
@@ -19,11 +19,9 @@ jobs:
     - checkout
 
     # Step to configure AWS credentials using project environment variables.
-    # This step sets up the credentials needed by the aws-ecr orb.
-    - aws-cli/setup:
-        aws-access-key-id: AWS_ACCESS_KEY_ID
-        aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-        aws-region: AWS_DEFAULT_REGION
+    # The credentials will be picked up automatically from the environment variables
+    # defined in your CircleCI project settings.
+    - aws-cli/setup
 
     # This orb step replaces the separate login, build, tag, and push steps.
     # It automatically logs into ECR, builds the image from the current context (.),
@@ -55,10 +53,9 @@ jobs:
     - checkout
 
     # Configure AWS credentials for ECR login
-    - aws-cli/setup:
-        aws-access-key-id: AWS_ACCESS_KEY_ID
-        aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-        aws-region: AWS_DEFAULT_REGION
+    # The credentials will be picked up automatically from the environment variables
+    # defined in your CircleCI project settings.
+    - aws-cli/setup
 
     # ECR Login: This step gets the login token and saves it to a temporary file
     - aws-ecr/get-login-password:
