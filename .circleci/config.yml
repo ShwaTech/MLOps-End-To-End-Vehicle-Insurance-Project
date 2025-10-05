@@ -1,8 +1,8 @@
 version: 2.1
 
 orbs:
-  aws-ecr: circleci/aws-ecr@9.3.7
-  aws-cli: circleci/aws-cli@5.1.2
+  aws-ecr: circleci/aws-ecr@9.6.0
+  aws-cli: circleci/aws-cli@5.4.1
 
 workflows:
   build_and_deploy:
@@ -30,15 +30,10 @@ jobs:
         account_id: $AWS_ACCOUNT_ID
 
   deploy_to_ec2:
-    machine:
-      resource_class: shwatech/vehicle
+    docker:
+    - image: cimg/aws:2023.09
     steps:
     - checkout
-    - run:
-        name: Install prerequisites
-        command: |
-          sudo apt-get update && \
-          sudo apt-get install -y unzip curl
     - aws-cli/setup:
         aws_access_key_id: $AWS_ACCESS_KEY_ID
         aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
