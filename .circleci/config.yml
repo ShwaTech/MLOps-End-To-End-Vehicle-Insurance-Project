@@ -10,17 +10,18 @@ jobs:
       image: ubuntu-2204:2023.10.1
     steps:
     - checkout
-    - aws-cli/setup
     - aws-ecr/build_and_push_image:
+        auth:
+        - aws-cli/setup
         repo: ECR_REPO
-        tag: 'latest'
-        create_repo: false # ✅ fixed snake_case
+        tag: "latest"
+        create_repo: false
 
   continuous_deployment:
     machine:
       image: ubuntu-2204:2024.01.1
     environment:
-      ECR_REPOSITORY: << pipeline.parameters.ECR_REPO >>
+      ECR_REPOSITORY: $ECR_REPO
       IMAGE_TAG: latest
     steps:
     - checkout
