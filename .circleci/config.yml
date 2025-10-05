@@ -1,93 +1,53 @@
 version: 2.1
 
 orbs:
-  aws-ecr: circleci/aws-ecr@9.6.0
-  aws-cli: circleci/aws-cli@5.4.1
+  aws-ecr: circleci/aws-ecr@8.2.1
+  aws-cli: circleci/aws-cli@3.2.0
 
 jobs:
-  # ----------------------------------------------------
-  # Job 1: Continuous Integration (Build & Push to ECR)
-  # ----------------------------------------------------
-  continuous_integration:
-    machine:
-      image: ubuntu-2204:2023.10.1
+  continuous-integration:
+    docker:
+    - image: cimg/base:stable
+    resource_class: medium
     steps:
-    - checkout
+    - setup_remote_docker:
+        version: 20.10.14
+        docker_layer_caching: true
 
-    # Get the AWS Account ID dynamically (instead of relying on CircleCI env)
-    - run:
-        name: Fetch AWS Account ID
-        command: |
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID" >> $BASH_ENV
-          echo "AWS Account ID is $AWS_ACCOUNT_ID"
+    - aws-ecr/build-and-push-image:
+        create-repo: true
+        dockerfile: Dockerfile
+        path: .
+        platform: linux/amd64
+        push-image: true
+        region: '${AWS_DEFAULT_REGION}'
+        repo: dev-shwa-vehicle-ecr
+        registry-id: AWS_ACCOUNT_ID
+        repo-scan-on-push: true
+        tag: latest
 
-    # Build & push Docker image to ECR
-    - aws-ecr/build_and_push_image:
-        auth:
-        - aws-cli/setup
-        account_id: "${AWS_ACCOUNT_ID}"
-        region: "${AWS_DEFAULT_REGION}"
-        repo: "${ECR_REPO}"
-        tag: "latest"
-        create_repo: false
-
-  # ----------------------------------------------------
-  # Job 2: Continuous Deployment (Pull & Run on target)
-  # ----------------------------------------------------
-  continuous_deployment:
-    machine:
-      image: ubuntu-2204:2024.01.1
-    environment:
-      ECR_REPOSITORY: $ECR_REPO
-      IMAGE_TAG: latest
+  continuous-delivery:
+    machine: true
+    resource_class: shwa/dev-shwa-vehicle-ecr
     steps:
-    - checkout
     - aws-cli/setup
+
     - run:
-        name: Pull and Run Application Docker Image
-        command: |
-          echo "Fetching AWS account ID..."
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        name: auth to aws ecr
+        command: aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 047719640457.dkr.ecr.us-east-1.amazonaws.com
 
-          echo "Constructing ECR registry URL..."
-          ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
-          FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    - run:
+        name: pull image from private repository
+        command: docker pull 047719640457.dkr.ecr.us-east-1.amazonaws.com/dev-shwa-vehicle-ecr
 
-          echo "Logging into ECR..."
-          aws ecr get-login-password --region $AWS_DEFAULT_REGION \
-            | docker login --username AWS --password-stdin $ECR_REGISTRY
+    - run:
+        name: run image
+        command: docker run -d -p 5000:5000 -e MONGODB_URL="mongodb+srv://shwa-vehicle:4ocUW5ZSxXHLJ9tE@cluster0.z7t8nq4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0" 047719640457.dkr.ecr.us-east-1.amazonaws.com/dev-shwa-vehicle-ecr
 
-          echo "Pulling image: $FULL_IMAGE_NAME"
-          docker pull $FULL_IMAGE_NAME
-
-          echo "Stopping and removing old container..."
-          docker stop my-app-container || true
-          docker rm my-app-container || true
-
-          echo "Running new container..."
-          docker run -d \
-            --name my-app-container \
-            -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
-            -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
-            -e AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION" \
-            -e MONGODB_URL="$MONGODB_URL" \
-            -p 5000:5000 \
-            $FULL_IMAGE_NAME
-
-# ----------------------------------------------------
-# Workflow: Run CI then Deploy on main branch
-# ----------------------------------------------------
 workflows:
-  deploy_on_push_main:
+  CICD:
     jobs:
-    - continuous_integration:
-        filters:
-          branches:
-            only: main
-    - continuous_deployment:
+    - continuous-integration
+    - continuous-delivery:
         requires:
-        - continuous_integration
-        filters:
-          branches:
-            only: main
+        - continuous-integration
