@@ -35,7 +35,7 @@ jobs:
     steps:
     - add_ssh_keys:
         fingerprints:
-        - "YOUR_EC2_KEY_FINGERPRINT"
+        - "53:9b:74:55:28:b3:32:d7:3e:3e:9b:e2:da:40:53:15"
 
     # Step 1: Login to ECR
     - run:
