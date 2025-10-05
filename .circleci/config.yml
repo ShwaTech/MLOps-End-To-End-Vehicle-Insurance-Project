@@ -2,8 +2,8 @@ version: 2.1
 
 # Define Orbs for easier AWS integration (ECR, CLI)
 orbs:
-  aws-ecr: circleci/aws-ecr@9.6
-  aws-cli: circleci/aws-cli@4.4
+  aws-ecr: circleci/aws-ecr@9.0
+  aws-cli: circleci/aws-cli@4.1
 
 jobs:
   # ----------------------------------------------------
