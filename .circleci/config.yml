@@ -2,7 +2,7 @@ version: 2.1
 
 # Define Orbs for easier AWS integration (ECR, CLI)
 orbs:
-  # Updated aws-ecr version to 10.1.0 to resolve "Cannot find a definition for command" issue
+  # Updated aws-ecr version to 9.6.0 for stability, and we will use snake_case for the job call.
   aws-ecr: circleci/aws-ecr@9.6.0
   aws-cli: circleci/aws-cli@5.4.1
 
@@ -25,9 +25,9 @@ jobs:
     - aws-cli/setup
 
     # This orb step replaces the separate login, build, tag, and push steps.
-    # It automatically logs into ECR, builds the image from the current context (.),
-    # tags it, and pushes it to the specified repository.
-    - aws-ecr/build-and-push-image:
+    # CRITICAL FIX: Changed from 'build-and-push-image' to 'build_and_push_image'
+    # to resolve the "Cannot find a definition" error, following common orb naming conventions.
+    - aws-ecr/build_and_push_image:
         repo: ECR_REPO # References the CircleCI environment variable $ECR_REPO
         tag: 'latest'
         create-repo: false # Assuming the repository is already created in ECR
@@ -43,7 +43,7 @@ jobs:
     # 2. If using the default CircleCI executor, you would need to use an SSH/CodeDeploy orb.
     # We will proceed assuming a self-hosted runner/environment is available with Docker.
     machine:
-      image: ubuntu-2204:2023.10.1
+      image: ubuntu-2204:2024.01.1 # Using a slightly newer recommended image for stability
 
     environment:
       # Define environment variables used in the docker run command for readability
