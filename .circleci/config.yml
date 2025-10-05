@@ -14,10 +14,14 @@ workflows:
 
 jobs:
   build_and_push_image:
-    machine:
-      image: ubuntu-2204:current
+    docker:
+    - image: cimg/base:stable
+    resource_class: medium
     steps:
     - checkout
+    - setup_remote_docker:
+        version: 20.10.17
+        docker_layer_caching: true
     - aws-ecr/build_and_push_image:
         auth:
         - aws-cli/setup:
@@ -31,15 +35,20 @@ jobs:
         create_repo: true
 
   deploy_to_ec2:
-    machine:
-      resource_class: shwatech/vehicle
+    machine: true
+    resource_class: shwatech/vehicle
     steps:
     - checkout
+    - aws-cli/setup
     - run:
         name: Login to Amazon ECR
         command: |
           aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
-            docker login --username AWS --password-stdin 047719640457.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+            docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+    - run:
+        name: Pull image from private repository
+        command: |
+          docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:latest
     - run:
         name: Run Docker Image to serve users
         command: |
@@ -49,4 +58,4 @@ jobs:
             -e AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION" \
             -e MONGODB_URL="$MONGODB_URL" \
             -p 5000:5000 \
-            "047719640457.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:latest"
+            "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:latest"
