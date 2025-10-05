@@ -5,18 +5,36 @@ orbs:
   aws-cli: circleci/aws-cli@5.4.1
 
 jobs:
+  # ----------------------------------------------------
+  # Job 1: Continuous Integration (Build & Push to ECR)
+  # ----------------------------------------------------
   continuous_integration:
     machine:
       image: ubuntu-2204:2023.10.1
     steps:
     - checkout
+
+    # Get the AWS Account ID dynamically (instead of relying on CircleCI env)
+    - run:
+        name: Fetch AWS Account ID
+        command: |
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID" >> $BASH_ENV
+          echo "AWS Account ID is $AWS_ACCOUNT_ID"
+
+    # Build & push Docker image to ECR
     - aws-ecr/build_and_push_image:
         auth:
         - aws-cli/setup
-        repo: ECR_REPO
+        account_id: "${AWS_ACCOUNT_ID}"
+        region: "${AWS_DEFAULT_REGION}"
+        repo: "${ECR_REPO}"
         tag: "latest"
         create_repo: false
 
+  # ----------------------------------------------------
+  # Job 2: Continuous Deployment (Pull & Run on target)
+  # ----------------------------------------------------
   continuous_deployment:
     machine:
       image: ubuntu-2204:2024.01.1
@@ -57,6 +75,9 @@ jobs:
             -p 5000:5000 \
             $FULL_IMAGE_NAME
 
+# ----------------------------------------------------
+# Workflow: Run CI then Deploy on main branch
+# ----------------------------------------------------
 workflows:
   deploy_on_push_main:
     jobs:
