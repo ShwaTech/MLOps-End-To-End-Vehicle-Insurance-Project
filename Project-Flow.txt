@@ -178,8 +178,12 @@ With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) 
         sudo sh get-docker.sh
         sudo usermod -aG docker ubuntu
         newgrp docker
+      ## Required - Install awscli
+        sudo snap install aws-cli --classic
+        aws --version  # to check  installation
+        aws configure  # (then add the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY for iam-user-ci-cd)
 
-30. Setup your Github secrets: (CircleCI >> Go To Your Project >> Environment Variable >> Add These)
+30. Setup your CircleCI secrets: (CircleCI >> Go To Your Project >> Environment Variable >> Add These)
       AWS_ACCESS_KEY_ID
       AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION
@@ -191,8 +195,10 @@ With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) 
     Generate an SSH Key on EC2 Instance and Add it Circle CI
       ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
       cat id_rsa.pub >> ~/.ssh/authorized_keys
-    take the id_rsa (private ont) and add it to CircleCI for your Project
-    To Covert that id_rsa.pub into hexa (MD5)
+    
+    Take the id_rsa (private one) and add it to your CircleCI Project
+    
+    To Covert that id_rsa.pub into hexa (MD5) used in config.yml file
       ssh-keygen -l -E md5 -f ~/.ssh/id_rsa.pub
 
 31. CI-CD pipeline will be triggered at next commit and push.

@@ -94,3 +94,5 @@ Vehicle insurance classification MLOps lifecycle from data ingestion to model ev
 ```
 
 ## For That Project Guidance -> Look at Project-Flow.txt
+
+## Run The App From -> http://<EC2_PUBLIC_IP>:5000
