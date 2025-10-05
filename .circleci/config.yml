@@ -27,6 +27,7 @@ jobs:
         repo: $ECR_REPO
         tag: latest
         region: $AWS_DEFAULT_REGION
+        account_id: $AWS_ACCOUNT_ID
         create_repo: true
 
   deploy_to_ec2:
