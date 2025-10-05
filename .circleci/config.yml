@@ -1,56 +1,55 @@
 version: 2.1
 
 orbs:
-  aws-ecr: circleci/aws-ecr@9.3.7
-  aws-cli: circleci/aws-cli@5.1.2
+  aws-ecr: circleci/aws-ecr@8.2.1
+  aws-cli: circleci/aws-cli@3.1.4
 
 workflows:
-  build_and_deploy:
+  CICD:
     jobs:
-    - build_and_push_image
-    - deploy_to_ec2:
+    - continuous-integration
+    - continuous-delivery:
         requires:
-        - build_and_push_image
+        - continuous-integration
 
 jobs:
-  build_and_push_image:
+  continuous-integration:
     docker:
     - image: cimg/base:stable
     resource_class: medium
     steps:
-    - checkout
     - setup_remote_docker:
-        version: 20.10.17
+        version: 20.10.14
         docker_layer_caching: true
-    - aws-ecr/build_and_push_image:
-        auth:
-        - aws-cli/setup:
-            aws_access_key_id: $AWS_ACCESS_KEY_ID
-            aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
-            region: $AWS_DEFAULT_REGION
-        repo: $ECR_REPO
-        tag: latest
-        region: $AWS_DEFAULT_REGION
-        account_id: $AWS_ACCOUNT_ID
-        create_repo: true
 
-  deploy_to_ec2:
+    - aws-ecr/build-and-push-image:
+        create-repo: true
+        dockerfile: Dockerfile
+        path: .
+        platform: linux/amd64
+        push-image: true
+        region: ${AWS_DEFAULT_REGION}
+        repo: ${ECR_REPO}
+        registry-id: ${AWS_ACCOUNT_ID}
+        repo-scan-on-push: true
+        tag: latest
+
+  continuous-delivery:
     machine: true
     resource_class: shwatech/vehicle
     steps:
-    - checkout
     - aws-cli/setup
+
     - run:
-        name: Login to Amazon ECR
-        command: |
-          aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
-            docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+        name: auth to aws ecr
+        command: aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
     - run:
-        name: Pull image from private repository
-        command: |
-          docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO:latest
+        name: pull image from private repository
+        command: docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO}:latest
+
     - run:
-        name: Run Docker Image to serve users
+        name: run image
         command: |
           docker run -d \
             -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
