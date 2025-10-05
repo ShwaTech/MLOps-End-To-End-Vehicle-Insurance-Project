@@ -33,6 +33,12 @@ jobs:
     machine:
       image: ubuntu-2204:current
     steps:
+    - checkout
+    - setup_remote_docker
+    - aws-cli/setup:
+        aws_access_key_id: $AWS_ACCESS_KEY_ID
+        aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
+        region: $AWS_DEFAULT_REGION
     - add_ssh_keys:
         fingerprints:
         - "53:9b:74:55:28:b3:32:d7:3e:3e:9b:e2:da:40:53:15"
