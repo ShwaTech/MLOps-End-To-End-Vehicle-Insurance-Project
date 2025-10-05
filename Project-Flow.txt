@@ -172,7 +172,7 @@ With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) 
 28. Open EC2 and Install docker in EC2 Machine:
       ## Optinal
         sudo apt-get update -y
-        sudo apt-get upgrade
+        sudo apt-get upgrade -y
       ## Required (Because Docker is'nt there in our EC2 server - [docker --version])
         curl -fsSL https://get.docker.com -o get-docker.sh
         sudo sh get-docker.sh
