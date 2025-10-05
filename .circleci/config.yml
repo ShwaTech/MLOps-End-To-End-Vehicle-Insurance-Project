@@ -26,16 +26,16 @@ jobs:
     steps:
     - checkout
     - aws-cli/setup
-    - aws-ecr/get-login-password:
-        region: AWS_DEFAULT_REGION
     - run:
         name: Pull and Run Application Docker Image
         command: |
-          ECR_REGISTRY=$AWS_ECR_REGISTRY_URL
-          FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
+          # Get login password and authenticate Docker to ECR
           echo "Logging into ECR..."
-          docker login -u AWS -p "$(cat /tmp/ecr-login-password)" $ECR_REGISTRY
+          aws ecr get-login-password --region $AWS_DEFAULT_REGION \
+            | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY_URL
+
+          # Build full image name
+          FULL_IMAGE_NAME="$AWS_ECR_REGISTRY_URL/$ECR_REPOSITORY:$IMAGE_TAG"
 
           echo "Pulling image: $FULL_IMAGE_NAME"
           docker pull $FULL_IMAGE_NAME
