@@ -21,13 +21,13 @@ jobs:
     - aws-ecr/build_and_push_image:
         auth:
         - aws-cli/setup:
-            aws-access-key-id: AWS_ACCESS_KEY_ID
-            aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-            aws-region: AWS_DEFAULT_REGION
-        repo: ECR_REPO
+            aws-access-key-id: $AWS_ACCESS_KEY_ID
+            aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
+            aws-region: $AWS_DEFAULT_REGION
+        repo: $ECR_REPO
         tag: latest
-        region: AWS_DEFAULT_REGION
-        account_id: AWS_ACCOUNT_ID
+        region: $AWS_DEFAULT_REGION
+        account_id: $AWS_ACCOUNT_ID
         create_repo: true
 
   deploy_to_ec2:
