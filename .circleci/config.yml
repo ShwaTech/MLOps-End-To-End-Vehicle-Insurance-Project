@@ -34,6 +34,11 @@ jobs:
       resource_class: shwatech/vehicle
     steps:
     - checkout
+    - run:
+        name: Install prerequisites
+        command: |
+          sudo apt-get update && \
+          sudo apt-get install -y unzip curl
     - aws-cli/setup:
         aws_access_key_id: $AWS_ACCESS_KEY_ID
         aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
