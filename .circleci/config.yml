@@ -3,8 +3,8 @@ version: 2.1
 # Define Orbs for easier AWS integration (ECR, CLI)
 orbs:
   # Updated aws-ecr version to 10.1.0 to resolve "Cannot find a definition for command" issue
-  aws-ecr: circleci/aws-ecr@10.1.0
-  aws-cli: circleci/aws-cli@4.1.2
+  aws-ecr: circleci/aws-ecr@9.6.0
+  aws-cli: circleci/aws-cli@5.4.1
 
 jobs:
   # ----------------------------------------------------
