@@ -179,13 +179,21 @@ With this Terraform setup, all infrastructure (IAM, ECR, EC2, networking, keys) 
         sudo usermod -aG docker ubuntu
         newgrp docker
 
-30. Setup your Github secrets: (Github project>Settings>SecretandVariable>Actions>NewRepoSecret)
+30. Setup your Github secrets: (CircleCI >> Go To Your Project >> Environment Variable >> Add These)
       AWS_ACCESS_KEY_ID
       AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION
       AWS_ACCOUNT_ID
       ECR_REPO
       MONGODB_URL
+      EC2_PUBLIC_IP
+    
+    Generate an SSH Key on EC2 Instance and Add it Circle CI
+      ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+      cat id_rsa.pub >> ~/.ssh/authorized_keys
+    take the id_rsa (private ont) and add it to CircleCI for your Project
+    To Covert that id_rsa.pub into hexa (MD5)
+      ssh-keygen -l -E md5 -f ~/.ssh/id_rsa.pub
 
 31. CI-CD pipeline will be triggered at next commit and push.
 
